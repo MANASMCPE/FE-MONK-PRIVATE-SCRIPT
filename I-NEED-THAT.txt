@@ -126,7 +126,7 @@ local function CreateSmallNotification(title, content, duration, color)
 end
 
 local function NotifyKillSuccess(targetName, method)
-    CreateSmallNotification("✅ Muerte Exitosa", targetName .. " ha sido eliminado con " .. method, 3, Color3.new(0, 1, 0))
+    CreateSmallNotification("✅ Successful Death", targetName .. " has been eliminated with " .. method, 3, Color3.new(0, 1, 0))
 end
 
 local function NotifyTargetNotFound()
