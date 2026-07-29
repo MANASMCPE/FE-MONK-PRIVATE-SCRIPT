@@ -1,12 +1,12 @@
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Parent = game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui")
-ScreenGui.Name = "HUMANOID_GUI"
+ScreenGui.Name = "M0NK gui"
 ScreenGui.ResetOnSpawn = false
 ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
 local plr = game:GetService("Players").LocalPlayer
 local savedCFrame = nil
-local MENSAJE_BIENVENIDA = "🔥 HUMANOID v3.0 iniciado correctamente 🔥"
+local WELCOME_MESSAGE = "🔥 M0nK v1.0 successfully started 🔥"
 local guiVisible = true
 
 local function CreateNotification(title, content, duration, color)
