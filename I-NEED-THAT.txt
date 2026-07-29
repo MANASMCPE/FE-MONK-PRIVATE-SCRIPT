@@ -1,0 +1,856 @@
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Parent = game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui")
+ScreenGui.Name = "HUMANOID_GUI"
+ScreenGui.ResetOnSpawn = false
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+local plr = game:GetService("Players").LocalPlayer
+local savedCFrame = nil
+local MENSAJE_BIENVENIDA = "🔥 HUMANOID v3.0 iniciado correctamente 🔥"
+local guiVisible = true
+
+local function CreateNotification(title, content, duration, color)
+    duration = duration or 5
+    
+    local NotificationHolder = Instance.new("Frame")
+    NotificationHolder.Size = UDim2.new(0, 320, 0, 200)
+    NotificationHolder.Position = UDim2.new(0.5, -160, 0.5, -100)
+    NotificationHolder.BackgroundColor3 = Color3.new(0.1, 0.1, 0.1)
+    NotificationHolder.BackgroundTransparency = 0.1
+    NotificationHolder.BorderSizePixel = 0
+    NotificationHolder.Parent = ScreenGui
+    
+    local NotificationCorner = Instance.new("UICorner")
+    NotificationCorner.CornerRadius = UDim.new(0, 15)
+    NotificationCorner.Parent = NotificationHolder
+    
+    local TitleLabel = Instance.new("TextLabel")
+    TitleLabel.Size = UDim2.new(1, -20, 0, 35)
+    TitleLabel.Position = UDim2.new(0, 10, 0, 5)
+    TitleLabel.BackgroundTransparency = 1
+    TitleLabel.TextColor3 = color or Color3.new(0, 1, 0)
+    TitleLabel.Text = title
+    TitleLabel.Font = Enum.Font.GothamBold
+    TitleLabel.TextSize = 18
+    TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
+    TitleLabel.Parent = NotificationHolder
+    
+    local ContentFrame = Instance.new("ScrollingFrame")
+    ContentFrame.Size = UDim2.new(1, -20, 1, -50)
+    ContentFrame.Position = UDim2.new(0, 10, 0, 40)
+    ContentFrame.BackgroundTransparency = 1
+    ContentFrame.BorderSizePixel = 0
+    ContentFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
+    ContentFrame.ScrollBarThickness = 4
+    ContentFrame.ScrollBarImageColor3 = Color3.new(0.5, 0.5, 0.5)
+    ContentFrame.Parent = NotificationHolder
+    
+    local ContentLabel = Instance.new("TextLabel")
+    ContentLabel.Size = UDim2.new(1, -10, 0, 0)
+    ContentLabel.Position = UDim2.new(0, 5, 0, 0)
+    ContentLabel.BackgroundTransparency = 1
+    ContentLabel.TextColor3 = Color3.new(1, 1, 1)
+    ContentLabel.Text = content
+    ContentLabel.Font = Enum.Font.Gotham
+    ContentLabel.TextSize = 14
+    ContentLabel.TextWrapped = true
+    ContentLabel.RichText = true
+    ContentLabel.TextXAlignment = Enum.TextXAlignment.Left
+    ContentLabel.TextYAlignment = Enum.TextYAlignment.Top
+    ContentLabel.Parent = ContentFrame
+    
+    local textBounds = ContentLabel.TextBounds
+    ContentLabel.Size = UDim2.new(1, -10, 0, textBounds.Y + 10)
+    ContentFrame.CanvasSize = UDim2.new(0, 0, 0, textBounds.Y + 20)
+    
+    task.spawn(function()
+        task.wait(duration)
+        for i = 1, 20 do
+            NotificationHolder.BackgroundTransparency = NotificationHolder.BackgroundTransparency + 0.05
+            TitleLabel.TextTransparency = TitleLabel.TextTransparency + 0.05
+            ContentLabel.TextTransparency = ContentLabel.TextTransparency + 0.05
+            task.wait(0.03)
+        end
+        NotificationHolder:Destroy()
+    end)
+end
+
+local function CreateSmallNotification(title, content, duration, color)
+    duration = duration or 3
+    
+    local NotificationHolder = Instance.new("Frame")
+    NotificationHolder.Size = UDim2.new(0, 280, 0, 70)
+    NotificationHolder.Position = UDim2.new(0.5, -140, 0, 20)
+    NotificationHolder.BackgroundColor3 = Color3.new(0.1, 0.1, 0.1)
+    NotificationHolder.BackgroundTransparency = 0.1
+    NotificationHolder.BorderSizePixel = 0
+    NotificationHolder.Parent = ScreenGui
+    
+    local NotificationCorner = Instance.new("UICorner")
+    NotificationCorner.CornerRadius = UDim.new(0, 12)
+    NotificationCorner.Parent = NotificationHolder
+    
+    local TitleLabel = Instance.new("TextLabel")
+    TitleLabel.Size = UDim2.new(1, -20, 0, 25)
+    TitleLabel.Position = UDim2.new(0, 10, 0, 5)
+    TitleLabel.BackgroundTransparency = 1
+    TitleLabel.TextColor3 = color or Color3.new(0, 1, 0)
+    TitleLabel.Text = title
+    TitleLabel.Font = Enum.Font.GothamBold
+    TitleLabel.TextSize = 16
+    TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
+    TitleLabel.Parent = NotificationHolder
+    
+    local ContentLabel = Instance.new("TextLabel")
+    ContentLabel.Size = UDim2.new(1, -20, 0, 30)
+    ContentLabel.Position = UDim2.new(0, 10, 0, 30)
+    ContentLabel.BackgroundTransparency = 1
+    ContentLabel.TextColor3 = Color3.new(1, 1, 1)
+    ContentLabel.Text = content
+    ContentLabel.Font = Enum.Font.Gotham
+    ContentLabel.TextSize = 14
+    ContentLabel.TextWrapped = true
+    ContentLabel.TextXAlignment = Enum.TextXAlignment.Left
+    ContentLabel.Parent = NotificationHolder
+    
+    task.spawn(function()
+        task.wait(duration)
+        for i = 1, 20 do
+            NotificationHolder.BackgroundTransparency = NotificationHolder.BackgroundTransparency + 0.05
+            TitleLabel.TextTransparency = TitleLabel.TextTransparency + 0.05
+            ContentLabel.TextTransparency = ContentLabel.TextTransparency + 0.05
+            task.wait(0.03)
+        end
+        NotificationHolder:Destroy()
+    end)
+end
+
+local function NotifyKillSuccess(targetName, method)
+    CreateSmallNotification("✅ Muerte Exitosa", targetName .. " ha sido eliminado con " .. method, 3, Color3.new(0, 1, 0))
+end
+
+local function NotifyTargetNotFound()
+    CreateSmallNotification("❌Target Not Found", "The specified player was not found", 3, Color3.new(1, 0, 0))
+end
+
+local function NotifyPlayerDead()
+    CreateSmallNotification("💀 Dead Player", "The target player is dead or has no character", 3, Color3.new(1, 0.5, 0))
+end
+
+local function NotifyNoTools()
+    CreateSmallNotification("⚠️ Error", "This Scripts Need Tools", 3, Color3.new(1, 0, 0))
+end
+
+local function SaveCF()
+    local success = pcall(function()
+        local character = plr.Character
+        if not character then
+            character = plr.CharacterAdded:Wait(1)
+        end
+        if character then
+            local root = character:WaitForChild("HumanoidRootPart", 1)
+            if root then
+                savedCFrame = root.CFrame
+            end
+        end
+    end)
+    return savedCFrame ~= nil
+end
+
+local function RestoreCF()
+    if savedCFrame then
+        local character = plr.CharacterAdded:Wait()
+        task.wait(0.1)
+        local root = character:WaitForChild("HumanoidRootPart")
+        root.CFrame = savedCFrame
+    end
+end
+
+local function GetTargetGripArm(targetChar)
+    if not targetChar then return nil end
+    
+    local gripArmNames = {
+        "Right Arm", "RightArm", "RightHand", 
+        "RightLowerArm", "RightUpperArm",
+        "Right Hand", "Right Lower Arm", "Right Upper Arm"
+    }
+    
+    for _, armName in ipairs(gripArmNames) do
+        local arm = targetChar:FindFirstChild(armName)
+        if arm then
+            return arm
+        end
+    end
+    
+    return nil
+end
+
+local function BreakTargetArm(targetPlayer)
+    if targetPlayer and targetPlayer.Character then
+        local targetGripArm = GetTargetGripArm(targetPlayer.Character)
+        if targetGripArm then
+            local currentPos = nil
+            if plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
+                currentPos = plr.Character.HumanoidRootPart.CFrame
+            end
+            
+            targetGripArm:BreakJoints()
+            
+            task.wait(0.05)
+            if currentPos and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
+                plr.Character.HumanoidRootPart.CFrame = currentPos
+            end
+        end
+    end
+end
+
+local function ValidateTarget(targetPlayer)
+    if not targetPlayer then
+        NotifyTargetNotFound()
+        return false
+    end
+    
+    if not targetPlayer.Character then
+        NotifyPlayerDead()
+        return false
+    end
+    
+    local targetHum = targetPlayer.Character:FindFirstChildOfClass("Humanoid")
+    if not targetHum or targetHum.Health <= 0 then
+        NotifyPlayerDead()
+        return false
+    end
+    
+    return true
+end
+
+local function DetectTargetDeath(targetPlayer, targetName, method)
+    task.wait(0.1)
+    
+    if not targetPlayer then return false end
+    
+    if not targetPlayer.Character then
+        NotifyKillSuccess(targetName, method)
+        return true
+    end
+    
+    local targetHum = targetPlayer.Character:FindFirstChildOfClass("Humanoid")
+    if not targetHum or targetHum.Health <= 0 then
+        NotifyKillSuccess(targetName, method)
+        return true
+    end
+    
+    local checks = 0
+    local maxChecks = 20
+    
+    repeat
+        task.wait(0.1)
+        checks = checks + 1
+        
+        if not targetPlayer then
+            NotifyKillSuccess(targetName, method)
+            return true
+        end
+        
+        if not targetPlayer.Character then
+            NotifyKillSuccess(targetName, method)
+            return true
+        end
+        
+        local hum = targetPlayer.Character:FindFirstChildOfClass("Humanoid")
+        if not hum or hum.Health <= 0 then
+            NotifyKillSuccess(targetName, method)
+            return true
+        end
+    until checks >= maxChecks
+    
+    return false
+end
+
+local function KillPlayer(targetPlayer)
+    task.spawn(function()
+        pcall(function()
+            if not ValidateTarget(targetPlayer) then return end
+            
+            SaveCF()
+            
+            local targetName2 = targetPlayer.Name
+            
+            local toolInBackpack = plr.Backpack:FindFirstChildOfClass("Tool")
+            local toolEquipped = plr.Character and plr.Character:FindFirstChildOfClass("Tool")
+            
+            if not toolInBackpack and not toolEquipped then
+                NotifyNoTools()
+                return
+            end
+            
+            local Tool = toolEquipped or toolInBackpack
+            
+            if not toolEquipped and toolInBackpack and plr.Character then
+                plr.Character.Humanoid:UnequipTools()
+                local Humanoid = plr.Character.Humanoid:Clone()
+                if plr.Character:FindFirstChild("Animate") then
+                    plr.Character.Animate.Disabled = true
+                    plr.Character.Humanoid.DisplayDistanceType = "None"
+                end
+                plr.Character.Humanoid:Destroy()
+                Humanoid.Parent = plr.Character
+                Tool.Parent = plr.Character
+            end
+            
+            local char = plr.Character
+            if char and char:FindFirstChildOfClass("Humanoid") then
+                char.Humanoid.RequiresNeck = false
+                char.Humanoid.BreakJointsOnDeath = true
+                char.Humanoid.PlatformStand = true
+                char.Humanoid:TakeDamage(9999)
+                char.Humanoid:ChangeState(15)
+                char.HumanoidRootPart.Anchored = false
+            end
+            local LocalPlayer = plr
+            
+            BreakTargetArm(targetPlayer)
+            
+            local function DoTouch(targetPlayer, tool)
+                if not targetPlayer or not targetPlayer.Character then return end
+                if not tool or not tool:FindFirstChild("Handle") then return end
+                
+                pcall(function()
+                    firetouchinterest(targetPlayer.Character.HumanoidRootPart, tool.Handle, 0)
+                    firetouchinterest(targetPlayer.Character.HumanoidRootPart, tool.Handle, 1)
+                end)
+                
+                pcall(function()
+                    local targetArm = targetPlayer.Character:FindFirstChild("Right Hand") or 
+                                     targetPlayer.Character:FindFirstChild("Right Arm")
+                    if targetArm then
+                        local original = tool.Handle.CFrame
+                        tool.Handle.CFrame = targetArm.CFrame
+                        task.wait(0.01)
+                        tool.Handle.CFrame = original
+                    end
+                end)
+            end
+            
+            local flag = false
+            task.defer(function()
+                if Tool and Tool:FindFirstChild("Handle") then
+                    Tool.Handle.AncestryChanged:Wait()
+                    flag = true
+                end
+            end)
+            
+            repeat
+                if targetPlayer then
+                    DoTouch(targetPlayer, Tool)
+                end
+                task.wait(0.1)
+            until flag
+            
+            task.spawn(function()
+                DetectTargetDeath(targetPlayer, targetName2, "Kill")
+            end)
+            
+            task.delay(0.1, function()
+                pcall(function()
+                    if char then
+                        char:BreakJoints()
+                        
+                        wait(0.1)
+                        if char:FindFirstChildOfClass("Humanoid") then
+                            for _, child in pairs(char.Humanoid:GetChildren()) do
+                                pcall(function() child:Remove() end)
+                            end
+                        end
+                        wait(0.1)
+                        
+                        if plr.Character then
+                            plr.Character.Humanoid.MaxHealth = 0
+                            plr.Character.Humanoid.Health = 0
+
+                            plr.Character:BreakJoints()
+                            plr.Character.Humanoid.BreakJointsOnDeath = true
+
+                            wait(0.5)
+
+                            plr.Character:Remove()
+                            plr.Character:Destroy()
+                        end
+                        
+                        plr.Character = nil
+                        LocalPlayer.CharacterAdded:Wait()
+                        task.wait(0.1)
+                        if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") and savedCFrame then
+                            LocalPlayer.Character.HumanoidRootPart.CFrame = savedCFrame
+                        end
+                    end
+                end)
+            end)
+        end)
+    end)
+end
+
+local function BanishPlayer(targetPlayer)
+    task.spawn(function()
+        pcall(function()
+            if not ValidateTarget(targetPlayer) then return end
+            
+            SaveCF()
+            
+            local targetName2 = targetPlayer.Name
+            local targetChar = targetPlayer.Character
+            
+            local toolInBackpack = plr.Backpack:FindFirstChildOfClass("Tool")
+            local toolEquipped = plr.Character and plr.Character:FindFirstChildOfClass("Tool")
+            
+            if not toolInBackpack and not toolEquipped then
+                NotifyNoTools()
+                return
+            end
+            
+            local plrChar = plr.Character
+            if not plrChar then return end
+            
+            if plrChar:FindFirstChildOfClass("Humanoid") then
+                local humClone = plrChar.Humanoid:Clone()
+                humClone.Parent = plrChar
+                humClone.Name = "Hum"
+                plrChar.Humanoid:Destroy()
+            end
+            
+            for _, tool in pairs(plr:GetDescendants()) do
+                if tool.ClassName == "Tool" and tool.Parent ~= plrChar then
+                    tool.Parent = plrChar
+                end
+            end
+            
+            local tool = plrChar:FindFirstChildOfClass("Tool")
+            if tool and tool:FindFirstChild("Handle") and targetChar then
+                local targetArm = targetChar:FindFirstChild("Right Hand") or targetChar:FindFirstChild("Right Arm")
+                local originalPos = tool.Handle.CFrame
+                
+                if targetArm then
+                    tool.Handle.CFrame = targetArm.CFrame
+                    task.wait(0.1)
+                    tool.Handle.CFrame = originalPos
+                end
+            end
+            
+            task.wait(0.5)
+            
+            if targetChar and targetChar:FindFirstChild("HumanoidRootPart") then
+                targetChar.HumanoidRootPart.CFrame = CFrame.new(0, -100, 0)
+            end
+            
+            if plrChar and plrChar:FindFirstChild("HumanoidRootPart") then
+                plrChar.HumanoidRootPart.CFrame = CFrame.new(0, -100, 0)
+            end
+            
+            wait(0.5)
+            
+            pcall(function()
+                plrChar:Remove()
+                plrChar:Destroy()
+            end)
+            
+            task.spawn(function()
+                DetectTargetDeath(targetPlayer, targetName2, "Banish")
+            end)
+            
+            plr.CharacterAdded:Wait()
+            task.wait(0.1)
+            RestoreCF()
+        end)
+    end)
+end
+
+local function VoidPlayer(targetPlayer)
+    task.spawn(function()
+        pcall(function()
+            if not ValidateTarget(targetPlayer) then return end
+            
+            local targetName2 = targetPlayer.Name
+            local tchar = targetPlayer.Character
+            local thrp = tchar and tchar:FindFirstChild("HumanoidRootPart")
+            if not thrp then return end
+            
+            local char = plr.Character
+            if not char then return end
+            
+            local hum = char:FindFirstChildOfClass("Humanoid")
+            local hrp = char:FindFirstChild("HumanoidRootPart")
+            
+            if not hum or not hrp then return end
+            
+            local toolInBackpack = plr.Backpack:FindFirstChildOfClass("Tool")
+            if not toolInBackpack then
+                NotifyNoTools()
+                return
+            end
+            
+            local clone = hum:Clone()
+            clone.Parent = char
+            hum:Destroy()
+            
+            if toolInBackpack and clone then
+                clone:EquipTool(toolInBackpack)
+            end
+            
+            local tool = char:FindFirstChildOfClass("Tool")
+            if not tool or not tool:FindFirstChild("Handle") then 
+                return
+            end
+            
+            task.wait(0.2)
+            
+            thrp.CFrame = tool.Handle.CFrame
+            
+            local targetArm = tchar:FindFirstChild("Right Hand") or 
+                             tchar:FindFirstChild("Right Arm") or
+                             tchar:FindFirstChild("RightLowerArm")
+            
+            if targetArm then
+                local originalCF = tool.Handle.CFrame
+                tool.Handle.CFrame = targetArm.CFrame
+                task.wait(0.1)
+                tool.Handle.CFrame = originalCF
+            end
+            
+            tool.AncestryChanged:Wait()
+            
+            task.spawn(function()
+                DetectTargetDeath(targetPlayer, targetName2, "Void")
+            end)
+            
+            hrp.CFrame = CFrame.new(Vector3.new(0, workspace.FallenPartsDestroyHeight + 1, 0))
+            wait(0.2)
+            
+            pcall(function()
+                char:Remove()
+                char:Destroy()
+            end)
+        end)
+    end)
+end
+
+local MainFrame = Instance.new("Frame")
+MainFrame.Size = UDim2.new(0, 300, 0, 450)
+MainFrame.Position = UDim2.new(0.5, -150, 0.5, -225)
+MainFrame.BackgroundColor3 = Color3.new(0.1, 0.1, 0.1)
+MainFrame.BackgroundTransparency = 0.1
+MainFrame.BorderSizePixel = 0
+MainFrame.Active = true
+MainFrame.Draggable = true
+MainFrame.Parent = ScreenGui
+
+local Corner = Instance.new("UICorner")
+Corner.CornerRadius = UDim.new(0, 15)
+Corner.Parent = MainFrame
+
+local Title = Instance.new("TextLabel")
+Title.Size = UDim2.new(1, 0, 0, 45)
+Title.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2)
+Title.BackgroundTransparency = 0.2
+Title.TextColor3 = Color3.new(1, 1, 1)
+Title.Text = "👤 M0NK.KILL - v1.0"
+Title.Font = Enum.Font.GothamBold
+Title.TextSize = 16
+Title.Parent = MainFrame
+
+local TitleCorner = Instance.new("UICorner")
+TitleCorner.CornerRadius = UDim.new(0, 15)
+TitleCorner.Parent = Title
+
+local SearchBox = Instance.new("TextBox")
+SearchBox.Size = UDim2.new(1, -20, 0, 35)
+SearchBox.Position = UDim2.new(0, 10, 0, 50)
+SearchBox.BackgroundColor3 = Color3.new(0.25, 0.25, 0.25)
+SearchBox.BackgroundTransparency = 0.2
+SearchBox.TextColor3 = Color3.new(1, 1, 1)
+SearchBox.PlaceholderColor3 = Color3.new(0.7, 0.7, 0.7)
+SearchBox.PlaceholderText = "🔍 Search for a player..."
+SearchBox.Font = Enum.Font.Gotham
+SearchBox.TextSize = 14
+SearchBox.ClearTextOnFocus = true
+SearchBox.Parent = MainFrame
+
+local SearchCorner = Instance.new("UICorner")
+SearchCorner.CornerRadius = UDim.new(0, 8)
+SearchCorner.Parent = SearchBox
+
+local RandomButton = Instance.new("TextButton")
+RandomButton.Size = UDim2.new(0, 60, 0, 30)
+RandomButton.Position = UDim2.new(1, -70, 0, 53)
+RandomButton.BackgroundColor3 = Color3.new(0.3, 0.3, 0.3)
+RandomButton.TextColor3 = Color3.new(1, 1, 1)
+RandomButton.Text = "🎲"
+RandomButton.Font = Enum.Font.GothamBold
+RandomButton.TextSize = 18
+RandomButton.Parent = MainFrame
+
+local RandomCorner = Instance.new("UICorner")
+RandomCorner.CornerRadius = UDim.new(0, 8)
+RandomCorner.Parent = RandomButton
+
+local ScrollFrame = Instance.new("ScrollingFrame")
+ScrollFrame.Size = UDim2.new(1, -20, 1, -140)
+ScrollFrame.Position = UDim2.new(0, 10, 0, 90)
+ScrollFrame.BackgroundColor3 = Color3.new(0.15, 0.15, 0.15)
+ScrollFrame.BackgroundTransparency = 0.2
+ScrollFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
+ScrollFrame.ScrollBarThickness = 4
+ScrollFrame.ScrollBarImageColor3 = Color3.new(0.5, 0.5, 0.5)
+ScrollFrame.Parent = MainFrame
+
+local ScrollCorner = Instance.new("UICorner")
+ScrollCorner.CornerRadius = UDim.new(0, 8)
+ScrollCorner.Parent = ScrollFrame
+
+local UIListLayout = Instance.new("UIListLayout")
+UIListLayout.Parent = ScrollFrame
+UIListLayout.Padding = UDim.new(0, 4)
+UIListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+
+local ToggleButton = Instance.new("TextButton")
+ToggleButton.Size = UDim2.new(0, 50, 0, 50)
+ToggleButton.Position = UDim2.new(0, 20, 0, 100)
+ToggleButton.BackgroundColor3 = Color3.new(0.2, 0.5, 0.8)
+ToggleButton.BackgroundTransparency = 0.1
+ToggleButton.TextColor3 = Color3.new(1, 1, 1)
+ToggleButton.Text = "⚡"
+ToggleButton.Font = Enum.Font.GothamBold
+ToggleButton.TextSize = 24
+ToggleButton.Draggable = true
+ToggleButton.Parent = ScreenGui
+
+local ToggleCorner = Instance.new("UICorner")
+ToggleCorner.CornerRadius = UDim.new(1, 0)
+ToggleCorner.Parent = ToggleButton
+
+local function toggleMainGUI()
+    if not MainFrame then return end
+    
+    guiVisible = not guiVisible
+    MainFrame.Visible = guiVisible
+    
+    if guiVisible then
+        ToggleButton.BackgroundColor3 = Color3.new(0.2, 0.5, 0.8)
+    else
+        ToggleButton.BackgroundColor3 = Color3.new(0.5, 0.5, 0.5)
+    end
+end
+
+ToggleButton.MouseButton1Click:Connect(toggleMainGUI)
+
+local CloseButton = Instance.new("TextButton")
+CloseButton.Size = UDim2.new(0, 30, 0, 30)
+CloseButton.Position = UDim2.new(1, -40, 0, 7)
+CloseButton.BackgroundColor3 = Color3.new(0.8, 0, 0)
+CloseButton.BackgroundTransparency = 0.1
+CloseButton.TextColor3 = Color3.new(1, 1, 1)
+CloseButton.Text = "✕"
+CloseButton.Font = Enum.Font.GothamBold
+CloseButton.TextSize = 18
+CloseButton.Parent = MainFrame
+
+local CloseCorner = Instance.new("UICorner")
+CloseCorner.CornerRadius = UDim.new(0, 8)
+CloseCorner.Parent = CloseButton
+
+CloseButton.MouseButton1Click:Connect(function()
+    ScreenGui:Destroy()
+end)
+
+local InfoButton = Instance.new("TextButton")
+InfoButton.Size = UDim2.new(0, 30, 0, 30)
+InfoButton.Position = UDim2.new(1, -75, 0, 7)
+InfoButton.BackgroundColor3 = Color3.new(0.2, 0.5, 0.8)
+InfoButton.BackgroundTransparency = 0.1
+InfoButton.TextColor3 = Color3.new(1, 1, 1)
+InfoButton.Text = "ℹ️"
+InfoButton.Font = Enum.Font.GothamBold
+InfoButton.TextSize = 18
+InfoButton.Parent = MainFrame
+
+local InfoCorner = Instance.new("UICorner")
+InfoCorner.CornerRadius = UDim.new(0, 8)
+InfoCorner.Parent = InfoButton
+
+InfoButton.MouseButton1Click:Connect(function()
+    CreateNotification("ℹ️ HUMANOID v3.0", 
+        "👤 Creador: Arkow51\n\n" ..
+        "📋 Créditos:\n" ..
+        "• Joaco1000ph78\n" ..
+        "• Automated_Account\n" ..
+        "• SuperMonK\n" ..
+        "• Paddling3581\n" ..
+        "• joey9876a", 
+        8, 
+        Color3.new(0.2, 0.5, 0.8))
+end)
+
+local function updatePlayerList(searchText)
+    searchText = searchText:lower()
+    
+    for _, child in ipairs(ScrollFrame:GetChildren()) do
+        if child:IsA("Frame") then
+            child:Destroy()
+        end
+    end
+
+    for _, player in ipairs(game:GetService("Players"):GetPlayers()) do
+        if player ~= plr then
+            local nameMatch = player.Name:lower():find(searchText, 1, true)
+            local displayMatch = player.DisplayName and player.DisplayName:lower():find(searchText, 1, true)
+            
+            if searchText == "" or nameMatch or displayMatch then
+                local PlayerFrame = Instance.new("Frame")
+                PlayerFrame.Size = UDim2.new(1, -10, 0, 100)
+                PlayerFrame.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2)
+                PlayerFrame.BackgroundTransparency = 0.1
+                PlayerFrame.Parent = ScrollFrame
+                
+                local PlayerCorner = Instance.new("UICorner")
+                PlayerCorner.CornerRadius = UDim.new(0, 8)
+                PlayerCorner.Parent = PlayerFrame
+                
+                local NameLabel = Instance.new("TextLabel")
+                NameLabel.Size = UDim2.new(1, -10, 0, 25)
+                NameLabel.Position = UDim2.new(0, 8, 0, 5)
+                NameLabel.BackgroundTransparency = 1
+                NameLabel.TextColor3 = Color3.new(1, 1, 1)
+                NameLabel.Text = player.Name .. " [" .. (player.DisplayName or player.Name) .. "]"
+                NameLabel.Font = Enum.Font.GothamBold
+                NameLabel.TextSize = 14
+                NameLabel.TextXAlignment = Enum.TextXAlignment.Left
+                NameLabel.Parent = PlayerFrame
+                
+                local buttonWidth = 70
+                local buttonSpacing = 5
+                
+                local KillButton = Instance.new("TextButton")
+                KillButton.Size = UDim2.new(0, buttonWidth, 0, 30)
+                KillButton.Position = UDim2.new(0, 8, 0, 35)
+                KillButton.BackgroundColor3 = Color3.new(0.9, 0, 0)
+                KillButton.TextColor3 = Color3.new(1, 1, 1)
+                KillButton.Text = "💀 KILL"
+                KillButton.Font = Enum.Font.GothamBold
+                KillButton.TextSize = 12
+                KillButton.Parent = PlayerFrame
+                
+                local KillCorner = Instance.new("UICorner")
+                KillCorner.CornerRadius = UDim.new(0, 6)
+                KillCorner.Parent = KillButton
+                
+                local BanishButton = Instance.new("TextButton")
+                BanishButton.Size = UDim2.new(0, buttonWidth, 0, 30)
+                BanishButton.Position = UDim2.new(0, 8 + buttonWidth + buttonSpacing, 0, 35)
+                BanishButton.BackgroundColor3 = Color3.new(0.7, 0, 0.7)
+                BanishButton.TextColor3 = Color3.new(1, 1, 1)
+                BanishButton.Text = "👻 BANISH"
+                BanishButton.Font = Enum.Font.GothamBold
+                BanishButton.TextSize = 12
+                BanishButton.Parent = PlayerFrame
+                
+                local BanishCorner = Instance.new("UICorner")
+                BanishCorner.CornerRadius = UDim.new(0, 6)
+                BanishCorner.Parent = BanishButton
+                
+                local VoidButton = Instance.new("TextButton")
+                VoidButton.Size = UDim2.new(0, buttonWidth, 0, 30)
+                VoidButton.Position = UDim2.new(0, 8 + (buttonWidth + buttonSpacing) * 2, 0, 35)
+                VoidButton.BackgroundColor3 = Color3.new(0, 0.5, 1)
+                VoidButton.TextColor3 = Color3.new(1, 1, 1)
+                VoidButton.Text = "🌀 VOID"
+                VoidButton.Font = Enum.Font.GothamBold
+                VoidButton.TextSize = 12
+                VoidButton.Parent = PlayerFrame
+                
+                local VoidCorner = Instance.new("UICorner")
+                VoidCorner.CornerRadius = UDim.new(0, 6)
+                VoidCorner.Parent = VoidButton
+                
+                local TeleportButton = Instance.new("TextButton")
+                TeleportButton.Size = UDim2.new(1, -16, 0, 25)
+                TeleportButton.Position = UDim2.new(0, 8, 0, 70)
+                TeleportButton.BackgroundColor3 = Color3.new(0.3, 0.3, 0.3)
+                TeleportButton.TextColor3 = Color3.new(1, 1, 1)
+                TeleportButton.Text = "📍 TELEPORT"
+                TeleportButton.Font = Enum.Font.GothamBold
+                TeleportButton.TextSize = 12
+                TeleportButton.Parent = PlayerFrame
+                
+                local TeleportCorner = Instance.new("UICorner")
+                TeleportCorner.CornerRadius = UDim.new(0, 6)
+                TeleportCorner.Parent = TeleportButton
+                
+                KillButton.MouseButton1Click:Connect(function()
+                    KillButton.Text = "⚡"
+                    KillButton.BackgroundColor3 = Color3.new(0.5, 0, 0)
+                    KillPlayer(player)
+                    task.wait(0.5)
+                    KillButton.Text = "💀 KILL"
+                    KillButton.BackgroundColor3 = Color3.new(0.9, 0, 0)
+                end)
+                
+                BanishButton.MouseButton1Click:Connect(function()
+                    BanishButton.Text = "⚡"
+                    BanishButton.BackgroundColor3 = Color3.new(0.4, 0, 0.4)
+                    BanishPlayer(player)
+                    task.wait(0.5)
+                    BanishButton.Text = "👻 BANISH"
+                    BanishButton.BackgroundColor3 = Color3.new(0.7, 0, 0.7)
+                end)
+                
+                VoidButton.MouseButton1Click:Connect(function()
+                    VoidButton.Text = "⚡"
+                    VoidButton.BackgroundColor3 = Color3.new(0, 0.3, 0.7)
+                    VoidPlayer(player)
+                    task.wait(0.5)
+                    VoidButton.Text = "🌀 VOID"
+                    VoidButton.BackgroundColor3 = Color3.new(0, 0.5, 1)
+                end)
+                
+                TeleportButton.MouseButton1Click:Connect(function()
+                    local localChar = plr.Character
+                    if player.Character and localChar then
+                        localChar:PivotTo(player.Character:GetPivot())
+                        CreateSmallNotification("📍 Teleport", "Te has movido a " .. player.Name, 2, Color3.new(0, 0.7, 1))
+                    end
+                end)
+            end
+        end
+    end
+    
+    ScrollFrame.CanvasSize = UDim2.new(0, 0, 0, UIListLayout.AbsoluteContentSize.Y + 10)
+end
+
+SearchBox:GetPropertyChangedSignal("Text"):Connect(function()
+    updatePlayerList(SearchBox.Text)
+end)
+
+RandomButton.MouseButton1Click:Connect(function()
+    local players = game:GetService("Players"):GetPlayers()
+    local otrosJugadores = {}
+    for _, v in pairs(players) do
+        if v ~= plr then
+            table.insert(otrosJugadores, v)
+        end
+    end
+    if #otrosJugadores > 0 then
+        local randomPlayer = otrosJugadores[math.random(1, #otrosJugadores)]
+        SearchBox.Text = randomPlayer.Name
+    end
+end)
+
+game:GetService("Players").PlayerAdded:Connect(function()
+    updatePlayerList(SearchBox.Text)
+end)
+
+game:GetService("Players").PlayerRemoving:Connect(function()
+    updatePlayerList(SearchBox.Text)
+end)
+
+updatePlayerList("")
+
+CreateSmallNotification("✅ HUMANOID", WELCOME_MESSAGE, 5, Color3.new(0, 1, 0))
