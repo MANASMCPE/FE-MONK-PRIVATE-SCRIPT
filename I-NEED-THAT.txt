@@ -815,7 +815,7 @@ local function updatePlayerList(searchText)
                     local localChar = plr.Character
                     if player.Character and localChar then
                         localChar:PivotTo(player.Character:GetPivot())
-                        CreateSmallNotification("📍 Teleport", "Te has movido a " .. player.Name, 2, Color3.new(0, 0.7, 1))
+                        CreateSmallNotification("📍 Teleport", "You have moved to " .. player.Name, 2, Color3.new(0, 0.7, 1))
                     end
                 end)
             end
